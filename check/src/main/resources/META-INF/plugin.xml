@@ -1,0 +1,18 @@
+<idea-plugin>
+    <id>com.argyriou.check</id>
+    <name>Commit checker</name>
+    <vendor email="support@pi-ag.com" url="http://www.pi-ag.com">P&amp;I AG</vendor>
+
+    <description>A small plugin to check that a commit does not contain outdated versions of binary files </description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <checkinHandlerFactory implementation="com.argyriou.Checker"/>
+    </extensions>
+
+    <actions>
+    </actions>
+</idea-plugin>
