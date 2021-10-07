@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.argyriou'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 repositories {
     mavenCentral()
@@ -16,14 +16,31 @@ dependencies {
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
+/*
+   this refers to the intellij version which the sandbox vm will run to operations like runIde for debugging an instance of intellij
+   with your plugin loaded, higher versions maybe have problems with CVS plugin.
+*/
 intellij {
-    version '2020.3.1'
+    pluginName = "Commit Checker"
+    version = System.getenv().getOrDefault("IJ_VERSION", "2020.3.1")
+    downloadSources = true
+//    updateSinceUntilBuild = true
+//    plugins = []
 }
-//patchPluginXml {
-//    changeNotes """
-//      Add change notes here.<br>
-//      <em>most HTML tags may be used</em>"""
+
+//runIde {
+//    jbrVersion = "11.0.9.1+11-b1145.63"
 //}
+
+//'11.0.9.1+11-b1145.63'
+
+patchPluginXml {
+    sinceBuild = '201'
+    pluginDescription = '''
+        <h1>Check a lofu commit</h1>
+    '''
+}
+
 test {
     useJUnitPlatform()
 }
