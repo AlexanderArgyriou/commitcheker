@@ -2,11 +2,11 @@ package com.argyriou.impl;
 
 import com.argyriou.enums.CvsCommands;
 import com.argyriou.enums.ExecArgs;
+import com.argyriou.enums.KeyWords;
 import com.argyriou.intrf.CvsOperatorIf;
 import com.argyriou.intrf.LofuCheckInHandlerIf;
 import com.argyriou.intrf.PopUpHandlerIf;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vcs.changes.CommitContext;
@@ -18,9 +18,8 @@ import com.intellij.util.containers.ContainerUtil;
 
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,7 @@ public class LofuCheckInHandler extends CheckinHandler implements LofuCheckInHan
      */
     @Override
     public RefreshableOnComponent getBeforeCheckinConfigurationPanel() {
-        return new BooleanCommitOption( panel,"Commit Checker",false,
+        return new BooleanCommitOption( panel,"Commit Checker",false, // ignore it, it's fine.
                 this::isBoxChecked,
                 this::setBoxChecked ); // could parse a lambda also, who cares, i don't like them.
     }
@@ -81,19 +80,18 @@ public class LofuCheckInHandler extends CheckinHandler implements LofuCheckInHan
 
     /**
      * Checks the versions of remote and local before "my" changes, if there is diff
-     * Map.Entry<FilePath, Pair<localVersion, RemoteVersion>> added to the map
+     * FilePath added to the diff list
      * if there are diffs a pop up appears
      * @param changes
-     * @return
+     * @return boolean
      */
     private boolean processChanges(List<Change> changes) {
-        Map<String, Pair<String, String>> diffs = new HashMap<>(); // Map<FilePath, Pair<localVersion, RemoteVersion>>
+        List<String> diffs = new ArrayList<>(); // List<FilePath>
         for ( Change change : changes ) {
             VirtualFile localFile = Objects.requireNonNull( Objects.requireNonNull( change.getBeforeRevision() ).getFile().getVirtualFile() );
-            String localRevisionBeforeChanges = change.getBeforeRevision().getRevisionNumber().asString();
-            String remoteLatestVersion = getLatestRemoteVersionForTheChangedBinaryFile( localFile );
-            if ( !localRevisionBeforeChanges.equals( remoteLatestVersion ) ) {
-                diffs.put( localFile.getPath(), new Pair<>( localRevisionBeforeChanges, remoteLatestVersion) );
+            String result = getResult( localFile );
+            if ( KeyWords.UNDEFINED.getKeyWord().equals( result ) ) {
+                diffs.add( localFile.getPath() );
             }
         }
         logger.info( diffs.toString() );
@@ -108,25 +106,16 @@ public class LofuCheckInHandler extends CheckinHandler implements LofuCheckInHan
      * @return String
      */
     @NotNull
-    private String getLatestRemoteVersionForTheChangedBinaryFile(VirtualFile localFile) {
+    private String getResult(VirtualFile localFile) {
         File fileWorkDir = new File( localFile.getPath()
                 .substring( 0, localFile.getPath().lastIndexOf( '/' ) ) ); // path without file name, cvs log -h should be executed there.
         List<String> cliArgs = constructCliArgsForLastHistoricChange( localFile.getName() );
         cvsOperator.setCliArgs( cliArgs );
         cvsOperator.setFileWorkDir( fileWorkDir );
         cvsOperator.doProcess();
-        String remoteVersion = extractVersion( cvsOperator.getResult() );
+        String revisions = cvsOperator.getResult(); // local, remote
         cvsOperator.refresh();
-        return remoteVersion;
-    }
-
-    /**
-     * Extracts version from a header.
-     * @param remoteHistory
-     * @return String
-     */
-    private String extractVersion( String remoteHistory ) {
-        return remoteHistory.substring( remoteHistory.lastIndexOf(' ') + 1 );
+        return revisions;
     }
 
     /**
@@ -138,7 +127,7 @@ public class LofuCheckInHandler extends CheckinHandler implements LofuCheckInHan
     private List<String> constructCliArgsForLastHistoricChange(String fileName) {
         return ContainerUtil.newArrayList( ( ExecArgs.CONSOLE ).getArg(),
                 ( ExecArgs.RUN_AND_THEN_CLOSE ).getArg(),
-                ( CvsCommands.LOG ).getCommand() + fileName );
+                ( CvsCommands.STATUS ).getCommand() + fileName );
     }
 
     /**

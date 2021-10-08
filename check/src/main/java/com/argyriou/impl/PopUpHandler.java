@@ -4,12 +4,11 @@ import com.argyriou.enums.CvsCommands;
 import com.argyriou.enums.ErrorMsgs;
 import com.argyriou.intrf.PopUpHandlerIf;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.VcsBundle;
 
 import org.jetbrains.annotations.NotNull;
-import java.util.Map;
+import java.util.List;
 
 /**
  * 06-10-2021 DD/MM/YYYY
@@ -18,13 +17,13 @@ import java.util.Map;
  *
  */
 public class PopUpHandler implements PopUpHandlerIf {
-    Map<String, Pair<String, String>> diffs;
+    List<String> diffs;
     CheckinProjectPanel panel;
 
     public PopUpHandler() {
     }
 
-    public PopUpHandler(Map<String, Pair<String, String>> diffs, CheckinProjectPanel panel) {
+    public PopUpHandler(List<String> diffs, CheckinProjectPanel panel) {
         this.diffs = diffs;
         this.panel = panel;
     }
@@ -47,25 +46,21 @@ public class PopUpHandler implements PopUpHandlerIf {
     }
 
     @NotNull
-    private StringBuilder constructInfoMessage(Map<String, Pair<String, String>> diffs) {
+    private StringBuilder constructInfoMessage(List<String> diffs) {
         StringBuilder msg = new StringBuilder();
-        for ( Map.Entry<String, Pair<String,String>> entry : diffs.entrySet() ) {
-            msg.append( entry.getKey() )
-                    .append(" is outdated! ( Local -> ")
-                    .append( entry.getValue().getFirst() )
-                    .append(" ) vs ")
-                    .append(" ( Remote -> ")
-                    .append( entry.getValue().getSecond() )
-                    .append(" )\n");
+        for ( String entry : diffs ) {
+            msg.append( entry )
+                    .append(" is outdated!" )
+                    .append("\n");
         }
         return msg;
     }
 
-    public Map<String, Pair<String, String>> getDiffs() {
+    public List<String> getDiffs() {
         return diffs;
     }
 
-    public void setDiffs(Map<String, Pair<String, String>> diffs) {
+    public void setDiffs(List<String> diffs) {
         this.diffs = diffs;
     }
 

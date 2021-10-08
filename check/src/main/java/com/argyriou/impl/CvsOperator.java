@@ -1,6 +1,7 @@
 package com.argyriou.impl;
 
 import com.argyriou.enums.ErrorMsgs;
+import com.argyriou.enums.KeyWords;
 import com.argyriou.intrf.CvsOperatorIf;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -21,7 +22,7 @@ public class CvsOperator implements CvsOperatorIf {
     private static final Logger logger = Logger.getInstance( CvsOperator.class );
     private List<String> cliArgs;
     File fileWorkDir;
-    String result = "";
+    String result = KeyWords.UNDEFINED.getKeyWord();
 
     public CvsOperator() {
     }
@@ -53,12 +54,10 @@ public class CvsOperator implements CvsOperatorIf {
                 String line;
                 while ( true ) {
                     line = r.readLine();
-                    if ( line == null || !"".equals( result ) ) {
+                    if ( line == null || !result.equals( KeyWords.UNDEFINED.getKeyWord() ) ) {
                         break;
                     }
-                    if ( line.contains( "head:" ) ) {
-                        result = line;
-                    }
+                    investigateLine( line );
                     logger.info( line );
                 }
             }
@@ -71,7 +70,6 @@ public class CvsOperator implements CvsOperatorIf {
                 logger.error( e );
                 return;
             }
-
             if ( exitValue != 0 ) {
                 logger.error( ErrorMsgs.PROCESS_EXIT.getMsg() );
             }
@@ -80,9 +78,21 @@ public class CvsOperator implements CvsOperatorIf {
         }
     }
 
+    private void investigateLine(String line) {
+        if ( line.contains( KeyWords.UP_TO_DATE.getKeyWord() ) ) {
+            result = KeyWords.UP_TO_DATE.getKeyWord();
+        }
+        if ( line.contains( KeyWords.LOC_MOD.getKeyWord() ) ) {
+            result = KeyWords.LOC_MOD.getKeyWord();
+        }
+        if ( line.contains( KeyWords.ADDED.getKeyWord() ) ) {
+            result = KeyWords.ADDED.getKeyWord();
+        }
+    }
+
     @Override
     public void refresh() {
-        result = "";
+        result = KeyWords.UNDEFINED.getKeyWord();
         fileWorkDir = null;
         cliArgs = null;
     }

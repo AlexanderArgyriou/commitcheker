@@ -9,9 +9,12 @@ import org.jetbrains.annotations.Contract;
  *
  */
 public enum CvsCommands {
+    CVS_PREFIX( "cvs -d " ),
     @Deprecated
-    LAST_HISTORIC_ENTRY ( "cvs -d " + System.getProperty( ExecArgs.CVS.getArg(), System.getenv( ExecArgs.CVS.getArg() ) ) + " history -a -c -l " ),
-    LOG ( "cvs -d " + System.getProperty( ExecArgs.CVS.getArg(), System.getenv( ExecArgs.CVS.getArg() ) ) + " log -h " ),
+    LAST_HISTORIC_ENTRY ( CVS_PREFIX.getCommand() + System.getProperty( ExecArgs.CVS.getArg(), System.getenv( ExecArgs.CVS.getArg() ) ) + " history -a -c -l " ),
+    @Deprecated
+    LOG ( CVS_PREFIX.getCommand() + System.getProperty( ExecArgs.CVS.getArg(), System.getenv( ExecArgs.CVS.getArg() ) ) + " log -h " ),
+    STATUS ( CVS_PREFIX.getCommand() + System.getProperty( ExecArgs.CVS.getArg(), System.getenv( ExecArgs.CVS.getArg() ) ) + " status " ),
     COMMIT( "checkin.commit" ),
     CANCEL( "checkin.cancel" );
 
